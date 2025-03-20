@@ -20,10 +20,10 @@ export function ThemeToggle() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="relative overflow-hidden rounded-full p-2.5 glass border border-gray-200/50 dark:border-gray-700/50 shadow-md transition-all duration-300"
+      className="relative overflow-hidden rounded-full p-2 sm:p-2.5 glass border border-gray-200/50 dark:border-gray-700/50 shadow-md transition-all duration-300"
       aria-label="Toggle theme"
     >
-      <div className="relative w-7 h-7 flex items-center justify-center">
+      <div className="relative w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center">
         {/* Sun Icon */}
         <motion.div
           initial={{
@@ -42,7 +42,7 @@ export function ThemeToggle() {
           }}
           className="absolute"
         >
-          <SunIcon className="h-6 w-6 text-amber-500" />
+          <SunIcon className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
         </motion.div>
 
         {/* Moon Icon */}
@@ -63,7 +63,7 @@ export function ThemeToggle() {
           }}
           className="absolute"
         >
-          <MoonIcon className="h-6 w-6 text-indigo-600" />
+          <MoonIcon className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
         </motion.div>
       </div>
 
