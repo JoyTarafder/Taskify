@@ -14,6 +14,10 @@ const config: Config = {
   },
   theme: {
     extend: {
+      fontFamily: {
+        poppins: ["var(--font-poppins)"],
+        inter: ["var(--font-inter)"],
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -34,6 +38,7 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        success: "hsl(var(--success))",
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
@@ -42,6 +47,8 @@ const config: Config = {
         "scale-in": "scaleIn 0.2s ease-out",
         "pulse-slow": "pulseSlow 4s infinite",
         float: "float 6s ease-in-out infinite",
+        "gradient-x": "gradient-x 15s ease infinite",
+        shimmer: "shimmer 2s infinite linear",
       },
       keyframes: {
         fadeIn: {
@@ -69,10 +76,20 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "gradient-x": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       boxShadow: {
         custom: "0 8px 30px rgb(0,0,0,0.12)",
         "custom-dark": "0 8px 30px rgb(0,0,0,0.3)",
+        glow: "0 0 20px rgba(66, 153, 225, 0.5)",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
