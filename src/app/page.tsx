@@ -94,9 +94,14 @@ export default function Home() {
                 ❤️
               </span>{" "}
               by{" "}
-              <span className="inline-block animate-pulse-slow text-red-500">
+              <a 
+                href="https://my-protfolio-jt.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block animate-pulse-slow text-red-500 hover:text-red-600 transition-colors"
+              >
                 @Joy Tarafder
-              </span>
+              </a>
               <span className="absolute inset-0 animate-shimmer pointer-events-none"></span>
             </span>
           </div>
