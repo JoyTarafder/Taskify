@@ -69,7 +69,7 @@ export function EmptyState({ filter }: EmptyStateProps) {
       <motion.div
         className="w-24 sm:w-40 h-0.5 sm:h-1 bg-gradient-to-r from-primary/30 via-primary/10 to-primary/30 rounded-full mt-6 sm:mt-8"
         initial={{ width: 0, opacity: 0 }}
-        animate={{ width: "6rem", opacity: 1, width: ["0rem", "6rem"] }}
+        animate={{ opacity: 1, width: ["0rem", "6rem"] }}
         transition={{ delay: 0.5, duration: 0.5 }}
       />
     </motion.div>
