@@ -267,33 +267,33 @@ export function TodoList() {
                   </span>
                 )}
 
-                <div className="flex gap-1.5 sm:gap-2 opacity-0 group-hover:opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                <div className="flex gap-1.5 sm:gap-2 transition-opacity">
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{
+                      scale: 1.1,
+                      backgroundColor: "rgba(var(--primary-rgb), 0.2)",
+                    }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => startEdit(todo)}
                     disabled={todo.completed}
-                    className={`p-1 group relative ${
+                    className={`p-1.5 sm:p-2 group relative rounded-lg transition-colors ${
                       todo.completed
                         ? "text-muted-foreground cursor-not-allowed"
-                        : "text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg"
+                        : "text-primary hover:text-primary bg-primary/5"
                     }`}
                   >
-                    <PencilSquareIcon className="w-4 h-4" />
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black/80 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
-                      Edit
-                    </span>
+                    <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{
+                      scale: 1.1,
+                      backgroundColor: "rgba(var(--destructive-rgb), 0.2)",
+                    }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => deleteTodo(todo.id)}
-                    className="p-1 text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-lg group relative"
+                    className="p-1.5 sm:p-2 text-destructive bg-destructive/5 rounded-lg group relative transition-colors"
                   >
-                    <TrashIcon className="w-4 h-4" />
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black/80 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
-                      Delete
-                    </span>
+                    <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </motion.button>
                 </div>
               </motion.li>
