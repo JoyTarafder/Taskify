@@ -2,9 +2,10 @@
 
 A beautifully designed task management application built with Next.js, React, TypeScript, Tailwind CSS, and Framer Motion. Taskify provides a modern, responsive interface for organizing your tasks with smooth animations and a beautiful UI.
 
-![Taskify Screenshot](https://imgur.com/a/SIdJVdq) _(Replace with actual screenshot)_
+![Taskify Screenshot](https://github.com/user-attachments/assets/90e6951e-a49f-4da2-bfff-aba9a9341dad)
 
 ## 📋 Features
+
 
 ### Core Features
 
@@ -142,7 +143,7 @@ interface Toast {
 ### Prerequisites
 
 - Node.js 18.x or later
-- npm, yarn, or pnpm package manager
+- npm package manager
 - Git for version control
 
 ### Environment Setup
@@ -150,28 +151,21 @@ interface Toast {
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/taskify.git
-cd taskify
+git clone https://github.com/JoyTarafder/Taskify.git
+
 ```
 
 2. **Install dependencies**
 
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
+
 ```
 
 3. **Run the development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
 4. **Open your browser**
@@ -243,13 +237,6 @@ taskify/
 
 ## 🚀 Deployment Options
 
-### Vercel Deployment
-
-1. Push to GitHub
-2. Connect to Vercel
-3. Configure environment variables
-4. Deploy
-
 ### Netlify Deployment
 
 1. Push to GitHub
@@ -273,23 +260,20 @@ npm run start
 
 1. **User Authentication**
 
-   - Email/password login
-   - Social authentication
-   - User profiles
-   - Session management
+   - Email/password login (Ongoing)
+   - Social Authentication (Ongoing)
+   - User profiles (Ongoing)
+   - Session management 
 
 2. **Cloud Synchronization**
 
    - Real-time updates
    - Cross-device sync
-   - Offline support
+   - Offline support (Ongoing)
    - Conflict resolution
 
 3. **Task Organization**
 
-   - Categories and tags
-   - Priority levels
-   - Due dates
    - Subtasks
 
 4. **Advanced Features**
