@@ -11,6 +11,8 @@ interface Todo {
   category: string;
   priority: "low" | "medium" | "high" | "none";
   dueDate: string | null;
+  dueTime: string | null;
+  reminder: boolean;
   tags: string[];
   timeTracking: {
     totalSeconds: number;

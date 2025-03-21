@@ -22,6 +22,8 @@ interface Todo {
   category: string;
   priority: "low" | "medium" | "high" | "none";
   dueDate: string | null;
+  dueTime: string | null;
+  reminder: boolean;
   tags: string[];
   timeTracking: {
     totalSeconds: number;
@@ -47,6 +49,9 @@ export function TodoList() {
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"default" | "dueDate" | "priority">(
+    "default"
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [editCategory, setEditCategory] = useState("");
@@ -54,14 +59,18 @@ export function TodoList() {
     "low" | "medium" | "high" | "none"
   >("none");
   const [editDueDate, setEditDueDate] = useState<string>("");
+  const [editDueTime, setEditDueTime] = useState<string>("");
   const [editTags, setEditTags] = useState<string>("");
+  const [editReminder, setEditReminder] = useState(false);
   const [showAdvancedAdd, setShowAdvancedAdd] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [newPriority, setNewPriority] = useState<
     "low" | "medium" | "high" | "none"
   >("none");
   const [newDueDate, setNewDueDate] = useState("");
+  const [newDueTime, setNewDueTime] = useState("");
   const [newTags, setNewTags] = useState("");
+  const [newReminder, setNewReminder] = useState(false);
   const [showTimeReport, setShowTimeReport] = useState(false);
 
   // Load todos from localStorage on mount
@@ -97,6 +106,8 @@ export function TodoList() {
       category: newCategory,
       priority: newPriority,
       dueDate: newDueDate || null,
+      dueTime: newDueTime || null,
+      reminder: newReminder,
       tags: newTags
         .split(",")
         .map((tag) => tag.trim())
@@ -133,7 +144,9 @@ export function TodoList() {
     setEditCategory(todo.category || "");
     setEditPriority(todo.priority || "none");
     setEditDueDate(todo.dueDate || "");
+    setEditDueTime(todo.dueTime || "");
     setEditTags(todo.tags?.join(", ") || "");
+    setEditReminder(todo.reminder || false);
   };
 
   const cancelEdit = () => {
@@ -142,7 +155,9 @@ export function TodoList() {
     setEditCategory("");
     setEditPriority("none");
     setEditDueDate("");
+    setEditDueTime("");
     setEditTags("");
+    setEditReminder(false);
   };
 
   const saveEdit = () => {
@@ -157,10 +172,12 @@ export function TodoList() {
               category: editCategory,
               priority: editPriority,
               dueDate: editDueDate || null,
+              dueTime: editDueTime || null,
               tags: editTags
                 .split(",")
                 .map((tag) => tag.trim())
                 .filter((tag) => tag !== ""),
+              reminder: editReminder,
             }
           : todo
       )
@@ -171,7 +188,9 @@ export function TodoList() {
     setEditCategory("");
     setEditPriority("none");
     setEditDueDate("");
+    setEditDueTime("");
     setEditTags("");
+    setEditReminder(false);
     showToast("Edited successfully", "info");
   };
 
@@ -198,25 +217,65 @@ export function TodoList() {
     ...new Set(todos.map((todo) => todo.category).filter(Boolean)),
   ];
 
-  const filteredTodos = todos.filter((todo) => {
-    // Status filter (all, active, completed)
-    const statusMatch =
-      filter === "all"
-        ? true
-        : filter === "active"
-        ? !todo.completed
-        : todo.completed;
+  // Sort and filter todos
+  const getFilteredAndSortedTodos = () => {
+    // First filter the todos
+    const filtered = todos.filter((todo) => {
+      // Status filter (all, active, completed)
+      const statusMatch =
+        filter === "all"
+          ? true
+          : filter === "active"
+          ? !todo.completed
+          : todo.completed;
 
-    // Category filter
-    const categoryMatch =
-      categoryFilter === "all" ? true : todo.category === categoryFilter;
+      // Category filter
+      const categoryMatch =
+        categoryFilter === "all" ? true : todo.category === categoryFilter;
 
-    // Priority filter
-    const priorityMatch =
-      priorityFilter === "all" ? true : todo.priority === priorityFilter;
+      // Priority filter
+      const priorityMatch =
+        priorityFilter === "all" ? true : todo.priority === priorityFilter;
 
-    return statusMatch && categoryMatch && priorityMatch;
-  });
+      return statusMatch && categoryMatch && priorityMatch;
+    });
+
+    // Then sort the filtered results
+    if (sortBy === "dueDate") {
+      return [...filtered].sort((a, b) => {
+        // Todos without due dates go at the end
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+
+        const dateA = new Date(a.dueDate);
+        const dateB = new Date(b.dueDate);
+
+        // Set time if available
+        if (a.dueTime) {
+          const [hoursA, minutesA] = a.dueTime.split(":").map(Number);
+          dateA.setHours(hoursA, minutesA, 0, 0);
+        }
+        if (b.dueTime) {
+          const [hoursB, minutesB] = b.dueTime.split(":").map(Number);
+          dateB.setHours(hoursB, minutesB, 0, 0);
+        }
+
+        return dateA.getTime() - dateB.getTime();
+      });
+    } else if (sortBy === "priority") {
+      // Priority sort: high -> medium -> low -> none
+      return [...filtered].sort((a, b) => {
+        const priorityOrder = { high: 0, medium: 1, low: 2, none: 3 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      });
+    }
+
+    // Default sort: as is
+    return filtered;
+  };
+
+  const filteredTodos = getFilteredAndSortedTodos();
 
   const activeTodoCount = todos.filter((todo) => !todo.completed).length;
   const completedTodoCount = todos.length - activeTodoCount;
@@ -245,13 +304,60 @@ export function TodoList() {
     });
   };
 
-  // Helper function to check if a date is past due
-  const isPastDue = (dateString: string | null) => {
-    if (!dateString) return false;
+  // Helper function to format combined date and time
+  const formatDateTime = (
+    dateString: string | null,
+    timeString: string | null
+  ) => {
+    if (!dateString) return timeString || null;
+    if (!timeString) return formatDate(dateString);
+
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+
+    return `${formattedDate} at ${timeString}`;
+  };
+
+  // Helper function to get due status
+  const getDueStatus = (
+    dateString: string | null,
+    timeString: string | null = null
+  ) => {
+    if (!dateString) return "none";
+
+    const now = new Date();
+    const dueDate = new Date(dateString);
+
+    // Set time if available
+    if (timeString) {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      dueDate.setHours(hours, minutes, 0, 0);
+    } else {
+      // If no time, set to end of day
+      dueDate.setHours(23, 59, 59, 999);
+    }
+
+    // Check if it's already overdue
+    if (dueDate < now) return "overdue";
+
+    // Check if it's due today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(dateString);
-    return dueDate < today;
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (dueDate >= today && dueDate < tomorrow) return "today";
+
+    // Check if it's due within the next 3 days
+    const threeDaysFromNow = new Date(today);
+    threeDaysFromNow.setDate(today.getDate() + 3);
+
+    if (dueDate < threeDaysFromNow) return "upcoming";
+
+    return "future";
   };
 
   // Function to start tracking time for a task
@@ -474,6 +580,38 @@ export function TodoList() {
                 />
               </div>
 
+              {/* Due Time */}
+              <div className="space-y-1">
+                <label
+                  htmlFor="dueTime"
+                  className="text-xs text-gray-500 dark:text-gray-400"
+                >
+                  Due Time
+                </label>
+                <input
+                  type="time"
+                  id="dueTime"
+                  value={newDueTime}
+                  onChange={(e) => setNewDueTime(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                />
+              </div>
+
+              {/* Reminder */}
+              <div className="space-y-1 flex items-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newReminder}
+                    onChange={(e) => setNewReminder(e.target.checked)}
+                    className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Set reminder
+                  </span>
+                </label>
+              </div>
+
               {/* Tags */}
               <div className="space-y-1">
                 <label
@@ -564,6 +702,19 @@ export function TodoList() {
           <option value="medium">Medium Priority</option>
           <option value="low">Low Priority</option>
           <option value="none">No Priority</option>
+        </select>
+
+        {/* Sort by selector */}
+        <select
+          value={sortBy}
+          onChange={(e) =>
+            setSortBy(e.target.value as "default" | "dueDate" | "priority")
+          }
+          className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20 ml-auto"
+        >
+          <option value="default">Default Sort</option>
+          <option value="dueDate">Due Date</option>
+          <option value="priority">Priority</option>
         </select>
       </div>
 
@@ -689,6 +840,36 @@ export function TodoList() {
                           />
                         </div>
 
+                        {/* Due Time */}
+                        <div className="space-y-1">
+                          <label className="text-xs text-gray-500 dark:text-gray-400">
+                            Due Time
+                          </label>
+                          <input
+                            type="time"
+                            value={editDueTime}
+                            onChange={(e) => setEditDueTime(e.target.value)}
+                            className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                          />
+                        </div>
+
+                        {/* Reminder */}
+                        <div className="space-y-1 flex items-end">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={editReminder}
+                              onChange={(e) =>
+                                setEditReminder(e.target.checked)
+                              }
+                              className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                            />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">
+                              Set reminder
+                            </span>
+                          </label>
+                        </div>
+
                         {/* Tags */}
                         <div className="space-y-1">
                           <label className="text-xs text-gray-500 dark:text-gray-400">
@@ -720,6 +901,8 @@ export function TodoList() {
                       {(todo.category ||
                         todo.priority !== "none" ||
                         todo.dueDate ||
+                        todo.dueTime ||
+                        todo.reminder ||
                         todo.tags?.length > 0 ||
                         todo.timeTracking.totalSeconds > 0 ||
                         todo.timeTracking.isRunning) && (
@@ -747,13 +930,38 @@ export function TodoList() {
                           {todo.dueDate && (
                             <div
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                                isPastDue(todo.dueDate)
+                                getDueStatus(todo.dueDate, todo.dueTime) ===
+                                "overdue"
                                   ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+                                  : getDueStatus(todo.dueDate, todo.dueTime) ===
+                                    "today"
+                                  ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
                                   : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                               }`}
                             >
                               <CalendarIcon className="w-3 h-3" />
-                              {formatDate(todo.dueDate)}
+                              {formatDateTime(todo.dueDate, todo.dueTime)}
+                            </div>
+                          )}
+
+                          {/* Reminder indicator */}
+                          {todo.reminder && (
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                                />
+                              </svg>
+                              <span>Reminder</span>
                             </div>
                           )}
 
