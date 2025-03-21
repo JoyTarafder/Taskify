@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { EmptyState } from "./empty-state";
+import { TimeReport } from "./time-report";
 import { Toast } from "./toast";
 
 interface Todo {
@@ -22,6 +23,11 @@ interface Todo {
   priority: "low" | "medium" | "high" | "none";
   dueDate: string | null;
   tags: string[];
+  timeTracking: {
+    totalSeconds: number;
+    isRunning: boolean;
+    lastStartTime: number | null;
+  };
 }
 
 interface Toast {
@@ -56,6 +62,7 @@ export function TodoList() {
   >("none");
   const [newDueDate, setNewDueDate] = useState("");
   const [newTags, setNewTags] = useState("");
+  const [showTimeReport, setShowTimeReport] = useState(false);
 
   // Load todos from localStorage on mount
   useEffect(() => {
@@ -94,6 +101,11 @@ export function TodoList() {
         .split(",")
         .map((tag) => tag.trim())
         .filter((tag) => tag !== ""),
+      timeTracking: {
+        totalSeconds: 0,
+        isRunning: false,
+        lastStartTime: null,
+      },
     };
 
     setTodos((prev) => [...prev, todo]);
@@ -240,6 +252,110 @@ export function TodoList() {
     today.setHours(0, 0, 0, 0);
     const dueDate = new Date(dateString);
     return dueDate < today;
+  };
+
+  // Function to start tracking time for a task
+  const startTimeTracking = (id: string) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id
+          ? {
+              ...todo,
+              timeTracking: {
+                ...todo.timeTracking,
+                isRunning: true,
+                lastStartTime: Date.now(),
+              },
+            }
+          : todo
+      )
+    );
+    showToast("Timer started", "info");
+  };
+
+  // Function to stop tracking time for a task
+  const stopTimeTracking = (id: string) => {
+    setTodos((prev) =>
+      prev.map((todo) => {
+        if (
+          todo.id === id &&
+          todo.timeTracking.isRunning &&
+          todo.timeTracking.lastStartTime
+        ) {
+          const elapsedSeconds = Math.floor(
+            (Date.now() - todo.timeTracking.lastStartTime) / 1000
+          );
+          return {
+            ...todo,
+            timeTracking: {
+              totalSeconds: todo.timeTracking.totalSeconds + elapsedSeconds,
+              isRunning: false,
+              lastStartTime: null,
+            },
+          };
+        }
+        return todo;
+      })
+    );
+    showToast("Timer stopped", "info");
+  };
+
+  // Function to reset time tracking for a task
+  const resetTimeTracking = (id: string) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id
+          ? {
+              ...todo,
+              timeTracking: {
+                totalSeconds: 0,
+                isRunning: false,
+                lastStartTime: null,
+              },
+            }
+          : todo
+      )
+    );
+    showToast("Timer reset", "info");
+  };
+
+  // Update running timers every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTodos((prev) =>
+        prev.map((todo) => {
+          if (todo.timeTracking.isRunning && todo.timeTracking.lastStartTime) {
+            const elapsedSeconds = Math.floor(
+              (Date.now() - todo.timeTracking.lastStartTime) / 1000
+            );
+            return {
+              ...todo,
+              timeTracking: {
+                totalSeconds: todo.timeTracking.totalSeconds + elapsedSeconds,
+                isRunning: true,
+                lastStartTime: Date.now(),
+              },
+            };
+          }
+          return todo;
+        })
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Format seconds into HH:MM:SS
+  const formatTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return [
+      hours.toString().padStart(2, "0"),
+      minutes.toString().padStart(2, "0"),
+      seconds.toString().padStart(2, "0"),
+    ].join(":");
   };
 
   return (
@@ -604,7 +720,9 @@ export function TodoList() {
                       {(todo.category ||
                         todo.priority !== "none" ||
                         todo.dueDate ||
-                        todo.tags?.length > 0) && (
+                        todo.tags?.length > 0 ||
+                        todo.timeTracking.totalSeconds > 0 ||
+                        todo.timeTracking.isRunning) && (
                         <div className="flex flex-wrap gap-1.5 mt-1.5">
                           {/* Category */}
                           {todo.category && (
@@ -648,6 +766,34 @@ export function TodoList() {
                               #{tag}
                             </div>
                           ))}
+
+                          {/* Time tracking */}
+                          {(todo.timeTracking.totalSeconds > 0 ||
+                            todo.timeTracking.isRunning) && (
+                            <div
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                                todo.timeTracking.isRunning
+                                  ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-pulse"
+                                  : "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+                              }`}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              {formatTime(todo.timeTracking.totalSeconds)}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -670,6 +816,95 @@ export function TodoList() {
                     >
                       <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </motion.button>
+
+                    {/* Time tracking controls */}
+                    {!todo.completed &&
+                      (todo.timeTracking.isRunning ? (
+                        <motion.button
+                          whileHover={{
+                            scale: 1.1,
+                            backgroundColor: "rgba(239, 68, 68, 0.2)",
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => stopTimeTracking(todo.id)}
+                          className="p-1.5 sm:p-2 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </motion.button>
+                      ) : (
+                        <motion.button
+                          whileHover={{
+                            scale: 1.1,
+                            backgroundColor: "rgba(16, 185, 129, 0.2)",
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => startTimeTracking(todo.id)}
+                          className="p-1.5 sm:p-2 text-green-500 bg-green-50 dark:bg-green-900/20 rounded-lg transition-colors"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </motion.button>
+                      ))}
+
+                    {/* Reset timer button - only show if there's time tracked */}
+                    {todo.timeTracking.totalSeconds > 0 && (
+                      <motion.button
+                        whileHover={{
+                          scale: 1.1,
+                          backgroundColor: "rgba(107, 114, 128, 0.2)",
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => resetTimeTracking(todo.id)}
+                        className="p-1.5 sm:p-2 text-gray-500 bg-gray-50 dark:text-gray-400 dark:bg-gray-800/40 rounded-lg transition-colors"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      </motion.button>
+                    )}
+
                     <motion.button
                       whileHover={{
                         scale: 1.1,
@@ -695,17 +930,56 @@ export function TodoList() {
             {activeTodoCount} task{activeTodoCount !== 1 ? "s" : ""} left
           </span>
 
-          {completedTodoCount > 0 && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={clearCompleted}
-              className="text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white/20 dark:bg-gray-700/30 hover:bg-red-500/10 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 shadow-sm"
-            >
-              Clear completed
-            </motion.button>
-          )}
+          <div className="flex gap-2">
+            {/* Time tracking statistics */}
+            {todos.some(
+              (todo) =>
+                todo.timeTracking.totalSeconds > 0 ||
+                todo.timeTracking.isRunning
+            ) && (
+              <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg text-xs sm:text-sm shadow-sm flex items-center gap-1.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>
+                  Total:{" "}
+                  {formatTime(
+                    todos.reduce(
+                      (acc, todo) => acc + todo.timeTracking.totalSeconds,
+                      0
+                    )
+                  )}
+                </span>
+              </div>
+            )}
+
+            {completedTodoCount > 0 && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={clearCompleted}
+                className="text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white/20 dark:bg-gray-700/30 hover:bg-red-500/10 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 shadow-sm"
+              >
+                Clear completed
+              </motion.button>
+            )}
+          </div>
         </div>
+      )}
+
+      {showTimeReport && (
+        <TimeReport todos={todos} onClose={() => setShowTimeReport(false)} />
       )}
     </div>
   );
