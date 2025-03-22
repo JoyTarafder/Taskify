@@ -7,6 +7,7 @@ interface Todo {
   id: string;
   text: string;
   completed: boolean;
+  status: string;
   createdAt: number;
   category: string;
   priority: "low" | "medium" | "high" | "none";
@@ -234,7 +235,7 @@ export function TimeReport({ todos, onClose }: TimeReportProps) {
               </p>
             ) : (
               <div className="space-y-4">
-                {groupedData.map((item, index) => {
+                {groupedData.map((item) => {
                   // For task grouping
                   if ("id" in item) {
                     return (

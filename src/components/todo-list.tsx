@@ -18,6 +18,7 @@ interface Todo {
   id: string;
   text: string;
   completed: boolean;
+  status: string;
   createdAt: number;
   category: string;
   priority: "low" | "medium" | "high" | "none";
@@ -102,6 +103,7 @@ export function TodoList() {
       id: Date.now().toString(),
       text: newTodo.trim(),
       completed: false,
+      status: "todo",
       createdAt: Date.now(),
       category: newCategory,
       priority: newPriority,
@@ -128,7 +130,13 @@ export function TodoList() {
   const toggleTodo = (id: string) => {
     setTodos((prev) =>
       prev.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        todo.id === id
+          ? {
+              ...todo,
+              completed: !todo.completed,
+              status: !todo.completed ? "done" : "todo",
+            }
+          : todo
       )
     );
   };
@@ -178,6 +186,7 @@ export function TodoList() {
                 .map((tag) => tag.trim())
                 .filter((tag) => tag !== ""),
               reminder: editReminder,
+              status: todo.completed ? "done" : "todo",
             }
           : todo
       )
@@ -204,8 +213,14 @@ export function TodoList() {
   };
 
   const clearCompleted = () => {
-    const completedCount = todos.filter((todo) => todo.completed).length;
-    setTodos(todos.filter((todo) => !todo.completed));
+    // Count based on completed status or status==="done"
+    const completedCount = todos.filter(
+      (todo) => todo.completed || todo.status === "done"
+    ).length;
+
+    // Filter out completed todos
+    setTodos(todos.filter((todo) => !todo.completed && todo.status !== "done"));
+
     if (completedCount > 0) {
       showToast(`${completedCount} task(s) cleared successfully`, "success");
     }
@@ -226,8 +241,8 @@ export function TodoList() {
         filter === "all"
           ? true
           : filter === "active"
-          ? !todo.completed
-          : todo.completed;
+          ? !todo.completed && todo.status !== "done"
+          : todo.completed || todo.status === "done";
 
       // Category filter
       const categoryMatch =
@@ -277,7 +292,9 @@ export function TodoList() {
 
   const filteredTodos = getFilteredAndSortedTodos();
 
-  const activeTodoCount = todos.filter((todo) => !todo.completed).length;
+  const activeTodoCount = todos.filter(
+    (todo) => !todo.completed && todo.status !== "done"
+  ).length;
   const completedTodoCount = todos.length - activeTodoCount;
 
   // Helper function to get priority color
