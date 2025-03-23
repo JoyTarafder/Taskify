@@ -10,7 +10,9 @@ import {
 } from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { DashboardStats } from "./dashboard-stats";
 import { EmptyState } from "./empty-state";
+import { FocusMode, FocusModeToggle } from "./focus-mode";
 import { TimeReport } from "./time-report";
 import { Toast } from "./toast";
 
@@ -73,6 +75,7 @@ export function TodoList() {
   const [newTags, setNewTags] = useState("");
   const [newReminder, setNewReminder] = useState(false);
   const [showTimeReport, setShowTimeReport] = useState(false);
+  const [focusModeActive, setFocusModeActive] = useState(false);
 
   // Load todos from localStorage on mount
   useEffect(() => {
@@ -86,6 +89,21 @@ export function TodoList() {
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
+
+  // Add keyboard shortcut for focus mode (F key)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+F for focus mode toggle
+      if (e.altKey && e.key === "f") {
+        toggleFocusMode();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // Don't include toggleFocusMode in dependencies to avoid circular reference
 
   const showToast = (message: string, type: "success" | "error" | "info") => {
     setToast({ message, type, show: true });
@@ -252,7 +270,12 @@ export function TodoList() {
       const priorityMatch =
         priorityFilter === "all" ? true : todo.priority === priorityFilter;
 
-      return statusMatch && categoryMatch && priorityMatch;
+      // Focus mode filter (if active, only show high priority tasks and tasks due soon)
+      const focusModeMatch = focusModeActive
+        ? todo.priority === "high" || isDueSoon(todo.dueDate, todo.dueTime)
+        : true;
+
+      return statusMatch && categoryMatch && priorityMatch && focusModeMatch;
     });
 
     // Then sort the filtered results
@@ -377,6 +400,27 @@ export function TodoList() {
     return "future";
   };
 
+  // Helper to check if a task is due soon (within 24 hours)
+  const isDueSoon = (dateString: string | null, timeString: string | null) => {
+    if (!dateString) return false;
+
+    const now = new Date();
+    const dueDate = new Date(dateString);
+
+    if (timeString) {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      dueDate.setHours(hours, minutes, 0, 0);
+    } else {
+      dueDate.setHours(23, 59, 59, 999); // End of day
+    }
+
+    // Calculate difference in hours
+    const diffMs = dueDate.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    return diffHours >= 0 && diffHours <= 24;
+  };
+
   // Function to start tracking time for a task
   const startTimeTracking = (id: string) => {
     setTodos((prev) =>
@@ -481,15 +525,37 @@ export function TodoList() {
     ].join(":");
   };
 
+  // Toggle focus mode
+  const toggleFocusMode = () => {
+    setFocusModeActive(!focusModeActive);
+
+    if (!focusModeActive) {
+      showToast(
+        "Focus mode activated (Alt+F to toggle) - showing only urgent tasks",
+        "info"
+      );
+    } else {
+      showToast("Focus mode deactivated", "info");
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Toast notification using the portal component */}
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {/* <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8 text-center">
+        Taskify
+      </h1> */}
+
+      <FocusMode isActive={focusModeActive} onToggle={toggleFocusMode} />
+
       <Toast
-        show={toast.show}
         message={toast.message}
+        show={toast.show}
         type={toast.type}
         onClose={hideToast}
       />
+
+      {/* Dashboard stats - hidden in focus mode */}
+      <DashboardStats todos={todos} visible={!focusModeActive} />
 
       <form onSubmit={addTodo} className="space-y-3">
         <div className="flex gap-2">
@@ -652,88 +718,96 @@ export function TodoList() {
       </form>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        {/* Status filter */}
-        <div className="flex gap-1 rounded-lg bg-secondary/50 p-0.5">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 my-6">
+        {/* Task filter controls */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
             onClick={() => setFilter("all")}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
               filter === "all"
-                ? "bg-primary text-primary-foreground"
-                : "text-secondary-foreground hover:bg-secondary/80"
+                ? "bg-primary/10 text-primary font-medium"
+                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
             }`}
           >
-            All
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            All Tasks
+          </button>
+          <button
             onClick={() => setFilter("active")}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
               filter === "active"
-                ? "bg-primary text-primary-foreground"
-                : "text-secondary-foreground hover:bg-secondary/80"
+                ? "bg-primary/10 text-primary font-medium"
+                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
             }`}
           >
             Active
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          </button>
+          <button
             onClick={() => setFilter("completed")}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
               filter === "completed"
-                ? "bg-primary text-primary-foreground"
-                : "text-secondary-foreground hover:bg-secondary/80"
+                ? "bg-primary/10 text-primary font-medium"
+                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
             }`}
           >
             Completed
-          </motion.button>
+          </button>
         </div>
 
-        {/* Category filter - only show if there are categories */}
-        {categories.length > 1 && (
+        {/* Spacer */}
+        <div className="flex-grow"></div>
+
+        {/* Focus mode toggle */}
+        <FocusModeToggle
+          isActive={focusModeActive}
+          onToggle={toggleFocusMode}
+        />
+      </div>
+
+      {/* Advanced filter controls - hidden in focus mode */}
+      {!focusModeActive && (
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
+          {/* Category filter */}
+          {categories.length > 1 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category === "all" ? "All Categories" : category}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Priority filter */}
           <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
             className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
           >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category === "all" ? "All Categories" : category}
-              </option>
-            ))}
+            <option value="all">All Priorities</option>
+            <option value="high">High Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="low">Low Priority</option>
+            <option value="none">No Priority</option>
           </select>
-        )}
 
-        {/* Priority filter */}
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
-        >
-          <option value="all">All Priorities</option>
-          <option value="high">High Priority</option>
-          <option value="medium">Medium Priority</option>
-          <option value="low">Low Priority</option>
-          <option value="none">No Priority</option>
-        </select>
-
-        {/* Sort by selector */}
-        <select
-          value={sortBy}
-          onChange={(e) =>
-            setSortBy(e.target.value as "default" | "dueDate" | "priority")
-          }
-          className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20 ml-auto"
-        >
-          <option value="default">Default Sort</option>
-          <option value="dueDate">Due Date</option>
-          <option value="priority">Priority</option>
-        </select>
-      </div>
+          {/* Sort by selector */}
+          <select
+            value={sortBy}
+            onChange={(e) =>
+              setSortBy(e.target.value as "default" | "dueDate" | "priority")
+            }
+            className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20 ml-auto"
+          >
+            <option value="default">Default Sort</option>
+            <option value="dueDate">Due Date</option>
+            <option value="priority">Priority</option>
+          </select>
+        </div>
+      )}
 
       <AnimatePresence mode="popLayout">
         {filteredTodos.length === 0 ? (
@@ -747,8 +821,21 @@ export function TodoList() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ delay: index * 0.05 }}
-                className="group flex flex-col rounded-xl task-card overflow-hidden"
+                className={`group flex flex-col rounded-xl task-card overflow-hidden relative ${
+                  focusModeActive &&
+                  (todo.priority === "high" ||
+                    isDueSoon(todo.dueDate, todo.dueTime))
+                    ? "ring-2 ring-red-500 dark:ring-red-600 shadow-lg"
+                    : ""
+                }`}
               >
+                {/* Focus mode indicator badge */}
+                {focusModeActive && (
+                  <div className="absolute top-2 right-2 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                    {todo.priority === "high" ? "High Priority" : "Due Soon"}
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
                   <motion.button
                     whileHover={{ scale: 1.1 }}
