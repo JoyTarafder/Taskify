@@ -7,7 +7,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface ToastProps {
@@ -19,13 +19,31 @@ interface ToastProps {
 
 export function Toast({ show, message, type, onClose }: ToastProps) {
   const [mounted, setMounted] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    const timer = setTimeout(() => {
-      if (show) onClose();
-    }, 3000);
-    return () => clearTimeout(timer);
+
+    // Clear any existing timer when show state changes
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Set a new timer only if the toast is being shown
+    if (show) {
+      timerRef.current = setTimeout(() => {
+        onClose();
+        timerRef.current = null;
+      }, 5000);
+    }
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
   }, [show, onClose]);
 
   // Only render on client side
@@ -74,7 +92,7 @@ export function Toast({ show, message, type, onClose }: ToastProps) {
             <motion.div
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
-              transition={{ duration: 3, ease: "linear" }}
+              transition={{ duration: 5, ease: "linear" }}
               className="absolute bottom-0 left-0 h-1 bg-white/30 rounded-b-2xl"
             />
 
