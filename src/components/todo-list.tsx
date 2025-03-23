@@ -250,6 +250,27 @@ export function TodoList() {
     ...new Set(todos.map((todo) => todo.category).filter(Boolean)),
   ];
 
+  // Helper to check if a task is due soon (within 24 hours)
+  const isDueSoon = (dateString: string | null, timeString: string | null) => {
+    if (!dateString) return false;
+
+    const now = new Date();
+    const dueDate = new Date(dateString);
+
+    if (timeString) {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      dueDate.setHours(hours, minutes, 0, 0);
+    } else {
+      dueDate.setHours(23, 59, 59, 999); // End of day
+    }
+
+    // Calculate difference in hours
+    const diffMs = dueDate.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    return diffHours >= 0 && diffHours <= 24;
+  };
+
   // Sort and filter todos
   const getFilteredAndSortedTodos = () => {
     // First filter the todos
@@ -398,27 +419,6 @@ export function TodoList() {
     if (dueDate < threeDaysFromNow) return "upcoming";
 
     return "future";
-  };
-
-  // Helper to check if a task is due soon (within 24 hours)
-  const isDueSoon = (dateString: string | null, timeString: string | null) => {
-    if (!dateString) return false;
-
-    const now = new Date();
-    const dueDate = new Date(dateString);
-
-    if (timeString) {
-      const [hours, minutes] = timeString.split(":").map(Number);
-      dueDate.setHours(hours, minutes, 0, 0);
-    } else {
-      dueDate.setHours(23, 59, 59, 999); // End of day
-    }
-
-    // Calculate difference in hours
-    const diffMs = dueDate.getTime() - now.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-
-    return diffHours >= 0 && diffHours <= 24;
   };
 
   // Function to start tracking time for a task
