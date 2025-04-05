@@ -9,7 +9,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DashboardStats } from "./dashboard-stats";
 import { EmptyState } from "./empty-state";
 import { FocusMode, FocusModeToggle } from "./focus-mode";
@@ -91,10 +91,14 @@ export function TodoList() {
   }, [todos]);
 
   // Add keyboard shortcut for focus mode (F key)
+  const toggleFocusMode = useCallback(() => {
+    setFocusModeActive((prev) => !prev);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Alt+F for focus mode toggle
-      if (e.altKey && e.key === "f") {
+      if (e.ctrlKey && e.key === "f") {
+        e.preventDefault();
         toggleFocusMode();
       }
     };
@@ -103,7 +107,7 @@ export function TodoList() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []); // Don't include toggleFocusMode in dependencies to avoid circular reference
+  }, [toggleFocusMode]);
 
   const showToast = (message: string, type: "success" | "error" | "info") => {
     setToast({ message, type, show: true });
@@ -523,20 +527,6 @@ export function TodoList() {
       minutes.toString().padStart(2, "0"),
       seconds.toString().padStart(2, "0"),
     ].join(":");
-  };
-
-  // Toggle focus mode
-  const toggleFocusMode = () => {
-    setFocusModeActive(!focusModeActive);
-
-    if (!focusModeActive) {
-      showToast(
-        "Focus mode activated (Alt+F to toggle) - showing only urgent tasks",
-        "info"
-      );
-    } else {
-      showToast("Focus mode deactivated", "info");
-    }
   };
 
   return (

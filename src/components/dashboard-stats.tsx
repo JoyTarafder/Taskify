@@ -65,19 +65,6 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     return diffHours >= 0 && diffHours <= 24;
   }).length;
 
-  // Calculate total tracked time
-  const totalTrackedSeconds = todos.reduce(
-    (total, todo) => total + todo.timeTracking.totalSeconds,
-    0
-  );
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    return `${hours}h ${minutes}m`;
-  };
-
   return (
     <AnimatePresence>
       {visible && (
