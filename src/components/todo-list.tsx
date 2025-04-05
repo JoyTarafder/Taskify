@@ -2,6 +2,7 @@
 
 import { CheckIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import {
+  BookOpenIcon,
   CalendarIcon,
   FlagIcon,
   PencilSquareIcon,
@@ -76,6 +77,7 @@ export function TodoList() {
   const [newReminder, setNewReminder] = useState(false);
   const [showTimeReport, setShowTimeReport] = useState(false);
   const [focusModeActive, setFocusModeActive] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
 
   // Load todos from localStorage on mount
   useEffect(() => {
@@ -530,759 +532,1040 @@ export function TodoList() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      {/* <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8 text-center">
-        Taskify
-      </h1> */}
+    <div className="relative">
+      {/* Documentation button - positioned outside the main content */}
+      <div className="absolute -top-12 right-0">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowDocs(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+        >
+          <BookOpenIcon className="w-5 h-5" />
+          <span className="font-medium">Documentation</span>
+        </motion.button>
+      </div>
 
-      <FocusMode isActive={focusModeActive} onToggle={toggleFocusMode} />
+      {/* Main content */}
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <FocusMode isActive={focusModeActive} onToggle={toggleFocusMode} />
 
-      <Toast
-        message={toast.message}
-        show={toast.show}
-        type={toast.type}
-        onClose={hideToast}
-      />
-
-      {/* Dashboard stats - hidden in focus mode */}
-      <DashboardStats todos={todos} visible={!focusModeActive} />
-
-      <form onSubmit={addTodo} className="space-y-3">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newTodo}
-            onChange={(e) => setNewTodo(e.target.value)}
-            placeholder="Add a new task..."
-            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-border/50 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-primary/40 transition-all shadow-sm placeholder:text-gray-400 text-sm sm:text-base"
-          />
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            onClick={() => setShowAdvancedAdd(!showAdvancedAdd)}
-            className="rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors shadow-sm"
-          >
-            <TagIcon className="w-5 h-5" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            type="submit"
-            className="btn-primary rounded-xl px-3 sm:px-5 aspect-square sm:aspect-auto"
-          >
-            <PlusIcon className="w-5 h-5" />
-          </motion.button>
-        </div>
-
-        {/* Advanced options */}
+        {/* Documentation Modal */}
         <AnimatePresence>
-          {showAdvancedAdd && (
+          {showDocs && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
             >
-              {/* Category */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="category"
-                  className="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Category
-                </label>
-                <input
-                  type="text"
-                  id="category"
-                  list="category-options"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  placeholder="Add category"
-                  className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
-                />
-                <datalist id="category-options">
-                  {categories
-                    .filter((c) => c !== "all")
-                    .map((category) => (
-                      <option key={category} value={category} />
-                    ))}
-                </datalist>
-              </div>
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative"
+              >
+                <div className="sticky top-0 flex justify-between items-center p-4 border-b bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm z-10">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <BookOpenIcon className="w-7 h-7 text-primary" />
+                    Taskify Documentation
+                  </h2>
+                  <button
+                    onClick={() => setShowDocs(false)}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <XMarkIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
 
-              {/* Priority */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="priority"
-                  className="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Priority
-                </label>
-                <select
-                  id="priority"
-                  value={newPriority}
-                  onChange={(e) =>
-                    setNewPriority(
-                      e.target.value as "low" | "medium" | "high" | "none"
-                    )
-                  }
-                  className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
-                >
-                  <option value="none">None</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
+                <div className="p-8 space-y-8">
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Getting Started
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Taskify is a powerful yet simple task management app
+                      designed to help you organize and track your tasks
+                      efficiently. With features like time tracking, priority
+                      management, and focus mode, it helps you stay productive
+                      and organized.
+                    </p>
+                  </div>
 
-              {/* Due Date */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="dueDate"
-                  className="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  id="dueDate"
-                  value={newDueDate}
-                  onChange={(e) => setNewDueDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
-                />
-              </div>
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Adding Tasks
+                    </h3>
+                    <div className="space-y-2">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        There are two ways to add tasks:
+                      </p>
+                      <ol className="list-decimal pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>
+                          <strong>Quick Add:</strong> Simply type your task in
+                          the input field and press Enter or click the + button.
+                        </li>
+                        <li>
+                          <strong>Advanced Add:</strong> Click the tag icon to
+                          access additional options:
+                          <ul className="list-disc pl-5 mt-2 space-y-1">
+                            <li>Category: Organize tasks by project or area</li>
+                            <li>
+                              Priority: Set task importance (High, Medium, Low)
+                            </li>
+                            <li>Due Date & Time: Set deadlines</li>
+                            <li>Reminder: Get notified about upcoming tasks</li>
+                            <li>
+                              Tags: Add custom labels for better organization
+                            </li>
+                          </ul>
+                        </li>
+                      </ol>
+                    </div>
+                  </div>
 
-              {/* Due Time */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="dueTime"
-                  className="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Due Time
-                </label>
-                <input
-                  type="time"
-                  id="dueTime"
-                  value={newDueTime}
-                  onChange={(e) => setNewDueTime(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
-                />
-              </div>
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Task Management
+                    </h3>
+                    <div className="space-y-2">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        Each task card provides several management options:
+                      </p>
+                      <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>
+                          <strong>Complete Task:</strong> Click the circle to
+                          mark a task as done
+                        </li>
+                        <li>
+                          <strong>Edit Task:</strong> Click the pencil icon to
+                          modify task details
+                        </li>
+                        <li>
+                          <strong>Delete Task:</strong> Click the trash icon to
+                          remove a task
+                        </li>
+                        <li>
+                          <strong>Time Tracking:</strong>
+                          <ul className="list-disc pl-5 mt-2 space-y-1">
+                            <li>
+                              Click the play button to start tracking time
+                            </li>
+                            <li>Click the pause button to stop tracking</li>
+                            <li>
+                              Click the reset button to clear tracked time
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
 
-              {/* Reminder */}
-              <div className="space-y-1 flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newReminder}
-                    onChange={(e) => setNewReminder(e.target.checked)}
-                    className="rounded border-gray-300 text-primary focus:ring-primary/20"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Set reminder
-                  </span>
-                </label>
-              </div>
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Filtering & Sorting
+                    </h3>
+                    <div className="space-y-2">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        Taskify offers powerful filtering and sorting options:
+                      </p>
+                      <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>
+                          <strong>Status Filter:</strong> View All, Active, or
+                          Completed tasks
+                        </li>
+                        <li>
+                          <strong>Category Filter:</strong> Filter tasks by
+                          their assigned category
+                        </li>
+                        <li>
+                          <strong>Priority Filter:</strong> Show tasks by
+                          priority level
+                        </li>
+                        <li>
+                          <strong>Sort Options:</strong>
+                          <ul className="list-disc pl-5 mt-2 space-y-1">
+                            <li>Default: Original order</li>
+                            <li>Due Date: Sort by deadline</li>
+                            <li>Priority: Sort by importance</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
 
-              {/* Tags */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="tags"
-                  className="text-xs text-gray-500 dark:text-gray-400"
-                >
-                  Tags (comma separated)
-                </label>
-                <input
-                  type="text"
-                  id="tags"
-                  value={newTags}
-                  onChange={(e) => setNewTags(e.target.value)}
-                  placeholder="work, personal, etc"
-                  className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
-                />
-              </div>
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Focus Mode
+                    </h3>
+                    <div className="space-y-2">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        Focus Mode helps you concentrate on important tasks:
+                      </p>
+                      <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>
+                          Shows only high-priority tasks and tasks due within 24
+                          hours
+                        </li>
+                        <li>Activates a clean, distraction-free interface</li>
+                        <li>
+                          Tasks are highlighted with a red border for emphasis
+                        </li>
+                        <li>
+                          Can be toggled with the Focus Mode button or keyboard
+                          shortcut
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Keyboard Shortcuts
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          General
+                        </h4>
+                        <ul className="space-y-2">
+                          <li className="flex items-center gap-2">
+                            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                              Ctrl+F
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              Toggle Focus Mode
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                              Enter
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              Add/Edit task
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                              Escape
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              Cancel editing
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          Task Management
+                        </h4>
+                        <ul className="space-y-2">
+                          <li className="flex items-center gap-2">
+                            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                              Space
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              Toggle task completion
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                              Delete
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              Delete selected task
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Time Tracking
+                    </h3>
+                    <div className="space-y-2">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        Track time spent on tasks with built-in timer
+                        functionality:
+                      </p>
+                      <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>Start/stop timer with play/pause buttons</li>
+                        <li>Reset timer to zero when needed</li>
+                        <li>View total time spent on each task</li>
+                        <li>See cumulative time tracking in the footer</li>
+                        <li>
+                          Timer continues running even when switching between
+                          tasks
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border-t flex justify-end">
+                  <button
+                    onClick={() => setShowDocs(false)}
+                    className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium"
+                  >
+                    Close Documentation
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
-      </form>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 my-6">
-        {/* Task filter controls */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <button
-            onClick={() => setFilter("all")}
-            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
-              filter === "all"
-                ? "bg-primary/10 text-primary font-medium"
-                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All Tasks
-          </button>
-          <button
-            onClick={() => setFilter("active")}
-            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
-              filter === "active"
-                ? "bg-primary/10 text-primary font-medium"
-                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setFilter("completed")}
-            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
-              filter === "completed"
-                ? "bg-primary/10 text-primary font-medium"
-                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Completed
-          </button>
+        <Toast
+          message={toast.message}
+          show={toast.show}
+          type={toast.type}
+          onClose={hideToast}
+        />
+
+        {/* Dashboard stats - hidden in focus mode */}
+        <DashboardStats todos={todos} visible={!focusModeActive} />
+
+        <form onSubmit={addTodo} className="space-y-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newTodo}
+              onChange={(e) => setNewTodo(e.target.value)}
+              placeholder="Add a new task..."
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-border/50 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-primary/40 transition-all shadow-sm placeholder:text-gray-400 text-sm sm:text-base"
+            />
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={() => setShowAdvancedAdd(!showAdvancedAdd)}
+              className="rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors shadow-sm"
+            >
+              <TagIcon className="w-5 h-5" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              className="btn-primary rounded-xl px-3 sm:px-5 aspect-square sm:aspect-auto"
+            >
+              <PlusIcon className="w-5 h-5" />
+            </motion.button>
+          </div>
+
+          {/* Advanced options */}
+          <AnimatePresence>
+            {showAdvancedAdd && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2"
+              >
+                {/* Category */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="category"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    id="category"
+                    list="category-options"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="Add category"
+                    className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                  />
+                  <datalist id="category-options">
+                    {categories
+                      .filter((c) => c !== "all")
+                      .map((category) => (
+                        <option key={category} value={category} />
+                      ))}
+                  </datalist>
+                </div>
+
+                {/* Priority */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="priority"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    Priority
+                  </label>
+                  <select
+                    id="priority"
+                    value={newPriority}
+                    onChange={(e) =>
+                      setNewPriority(
+                        e.target.value as "low" | "medium" | "high" | "none"
+                      )
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                  >
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+
+                {/* Due Date */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="dueDate"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    id="dueDate"
+                    value={newDueDate}
+                    onChange={(e) => setNewDueDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                  />
+                </div>
+
+                {/* Due Time */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="dueTime"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    Due Time
+                  </label>
+                  <input
+                    type="time"
+                    id="dueTime"
+                    value={newDueTime}
+                    onChange={(e) => setNewDueTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                  />
+                </div>
+
+                {/* Reminder */}
+                <div className="space-y-1 flex items-end">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newReminder}
+                      onChange={(e) => setNewReminder(e.target.checked)}
+                      className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Set reminder
+                    </span>
+                  </label>
+                </div>
+
+                {/* Tags */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="tags"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    Tags (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    id="tags"
+                    value={newTags}
+                    onChange={(e) => setNewTags(e.target.value)}
+                    placeholder="work, personal, etc"
+                    className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </form>
+
+        {/* Filter bar */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 my-6">
+          {/* Task filter controls */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setFilter("all")}
+              className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
+                filter === "all"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All Tasks
+            </button>
+            <button
+              onClick={() => setFilter("active")}
+              className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
+                filter === "active"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setFilter("completed")}
+              className={`rounded-full px-3 py-1.5 text-xs sm:text-sm ${
+                filter === "completed"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Completed
+            </button>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-grow"></div>
+
+          {/* Focus mode toggle */}
+          <FocusModeToggle
+            isActive={focusModeActive}
+            onToggle={toggleFocusMode}
+          />
         </div>
 
-        {/* Spacer */}
-        <div className="flex-grow"></div>
+        {/* Advanced filter controls - hidden in focus mode */}
+        {!focusModeActive && (
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
+            {/* Category filter */}
+            {categories.length > 1 && (
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category === "all" ? "All Categories" : category}
+                  </option>
+                ))}
+              </select>
+            )}
 
-        {/* Focus mode toggle */}
-        <FocusModeToggle
-          isActive={focusModeActive}
-          onToggle={toggleFocusMode}
-        />
-      </div>
-
-      {/* Advanced filter controls - hidden in focus mode */}
-      {!focusModeActive && (
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
-          {/* Category filter */}
-          {categories.length > 1 && (
+            {/* Priority filter */}
             <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
               className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
             >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category === "all" ? "All Categories" : category}
-                </option>
-              ))}
+              <option value="all">All Priorities</option>
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
+              <option value="none">No Priority</option>
             </select>
-          )}
 
-          {/* Priority filter */}
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
-          >
-            <option value="all">All Priorities</option>
-            <option value="high">High Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="low">Low Priority</option>
-            <option value="none">No Priority</option>
-          </select>
+            {/* Sort by selector */}
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as "default" | "dueDate" | "priority")
+              }
+              className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20 ml-auto"
+            >
+              <option value="default">Default Sort</option>
+              <option value="dueDate">Due Date</option>
+              <option value="priority">Priority</option>
+            </select>
+          </div>
+        )}
 
-          {/* Sort by selector */}
-          <select
-            value={sortBy}
-            onChange={(e) =>
-              setSortBy(e.target.value as "default" | "dueDate" | "priority")
-            }
-            className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20 ml-auto"
-          >
-            <option value="default">Default Sort</option>
-            <option value="dueDate">Due Date</option>
-            <option value="priority">Priority</option>
-          </select>
-        </div>
-      )}
-
-      <AnimatePresence mode="popLayout">
-        {filteredTodos.length === 0 ? (
-          <EmptyState filter={filter} />
-        ) : (
-          <motion.ul className="space-y-3">
-            {filteredTodos.map((todo, index) => (
-              <motion.li
-                key={todo.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ delay: index * 0.05 }}
-                className={`group flex flex-col rounded-xl task-card overflow-hidden relative ${
-                  focusModeActive &&
-                  (todo.priority === "high" ||
-                    isDueSoon(todo.dueDate, todo.dueTime))
-                    ? "ring-2 ring-red-500 dark:ring-red-600 shadow-lg"
-                    : ""
-                }`}
-              >
-                {/* Focus mode indicator badge */}
-                {focusModeActive && (
-                  <div className="absolute top-2 right-2 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                    {todo.priority === "high" ? "High Priority" : "Due Soon"}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => toggleTodo(todo.id)}
-                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      todo.completed
-                        ? "bg-primary border-primary shadow-sm shadow-primary/20"
-                        : "border-border hover:border-primary"
-                    }`}
-                  >
-                    {todo.completed && (
-                      <CheckIcon className="w-3 h-3 sm:w-4 sm:h-4 text-primary-foreground" />
-                    )}
-                  </motion.button>
-
-                  {editingId === todo.id ? (
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          onKeyDown={handleEditKeyDown}
-                          autoFocus
-                          className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/30 bg-background/80 text-sm"
-                        />
-                        <div className="flex gap-1">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={saveEdit}
-                            className="p-1.5 text-primary hover:text-primary/80 bg-primary/10 rounded-lg"
-                          >
-                            <CheckIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={cancelEdit}
-                            className="p-1.5 text-muted-foreground hover:text-foreground bg-secondary/50 rounded-lg"
-                          >
-                            <XMarkIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          </motion.button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 px-1">
-                        {/* Category */}
-                        <div className="space-y-1">
-                          <label className="text-xs text-gray-500 dark:text-gray-400">
-                            Category
-                          </label>
-                          <input
-                            type="text"
-                            list="edit-category-options"
-                            value={editCategory}
-                            onChange={(e) => setEditCategory(e.target.value)}
-                            placeholder="Add category"
-                            className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
-                          />
-                          <datalist id="edit-category-options">
-                            {categories
-                              .filter((c) => c !== "all")
-                              .map((category) => (
-                                <option key={category} value={category} />
-                              ))}
-                          </datalist>
-                        </div>
-
-                        {/* Priority */}
-                        <div className="space-y-1">
-                          <label className="text-xs text-gray-500 dark:text-gray-400">
-                            Priority
-                          </label>
-                          <select
-                            value={editPriority}
-                            onChange={(e) =>
-                              setEditPriority(
-                                e.target.value as
-                                  | "low"
-                                  | "medium"
-                                  | "high"
-                                  | "none"
-                              )
-                            }
-                            className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
-                          >
-                            <option value="none">None</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                          </select>
-                        </div>
-
-                        {/* Due Date */}
-                        <div className="space-y-1">
-                          <label className="text-xs text-gray-500 dark:text-gray-400">
-                            Due Date
-                          </label>
-                          <input
-                            type="date"
-                            value={editDueDate}
-                            onChange={(e) => setEditDueDate(e.target.value)}
-                            className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
-                          />
-                        </div>
-
-                        {/* Due Time */}
-                        <div className="space-y-1">
-                          <label className="text-xs text-gray-500 dark:text-gray-400">
-                            Due Time
-                          </label>
-                          <input
-                            type="time"
-                            value={editDueTime}
-                            onChange={(e) => setEditDueTime(e.target.value)}
-                            className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
-                          />
-                        </div>
-
-                        {/* Reminder */}
-                        <div className="space-y-1 flex items-end">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={editReminder}
-                              onChange={(e) =>
-                                setEditReminder(e.target.checked)
-                              }
-                              className="rounded border-gray-300 text-primary focus:ring-primary/20"
-                            />
-                            <span className="text-xs text-gray-700 dark:text-gray-300">
-                              Set reminder
-                            </span>
-                          </label>
-                        </div>
-
-                        {/* Tags */}
-                        <div className="space-y-1">
-                          <label className="text-xs text-gray-500 dark:text-gray-400">
-                            Tags (comma separated)
-                          </label>
-                          <input
-                            type="text"
-                            value={editTags}
-                            onChange={(e) => setEditTags(e.target.value)}
-                            placeholder="work, personal"
-                            className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-1 flex flex-col">
-                      <span
-                        className={`text-sm sm:text-base ${
-                          todo.completed
-                            ? "line-through text-muted-foreground"
-                            : ""
-                        }`}
-                      >
-                        {todo.text}
-                      </span>
-
-                      {/* Task metadata row */}
-                      {(todo.category ||
-                        todo.priority !== "none" ||
-                        todo.dueDate ||
-                        todo.dueTime ||
-                        todo.reminder ||
-                        todo.tags?.length > 0 ||
-                        todo.timeTracking.totalSeconds > 0 ||
-                        todo.timeTracking.isRunning) && (
-                        <div className="flex flex-wrap gap-1.5 mt-1.5">
-                          {/* Category */}
-                          {todo.category && (
-                            <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary/90">
-                              {todo.category}
-                            </div>
-                          )}
-
-                          {/* Priority */}
-                          {todo.priority !== "none" && (
-                            <div
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${getPriorityColor(
-                                todo.priority
-                              )}`}
-                            >
-                              <FlagIcon className="w-3 h-3" />
-                              {todo.priority}
-                            </div>
-                          )}
-
-                          {/* Due date */}
-                          {todo.dueDate && (
-                            <div
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                                getDueStatus(todo.dueDate, todo.dueTime) ===
-                                "overdue"
-                                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
-                                  : getDueStatus(todo.dueDate, todo.dueTime) ===
-                                    "today"
-                                  ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
-                                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                              }`}
-                            >
-                              <CalendarIcon className="w-3 h-3" />
-                              {formatDateTime(todo.dueDate, todo.dueTime)}
-                            </div>
-                          )}
-
-                          {/* Reminder indicator */}
-                          {todo.reminder && (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-3 h-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                                />
-                              </svg>
-                              <span>Reminder</span>
-                            </div>
-                          )}
-
-                          {/* Tags */}
-                          {todo.tags?.map((tag) => (
-                            <div
-                              key={tag}
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                            >
-                              #{tag}
-                            </div>
-                          ))}
-
-                          {/* Time tracking */}
-                          {(todo.timeTracking.totalSeconds > 0 ||
-                            todo.timeTracking.isRunning) && (
-                            <div
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                                todo.timeTracking.isRunning
-                                  ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-pulse"
-                                  : "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
-                              }`}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-3 h-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              {formatTime(todo.timeTracking.totalSeconds)}
-                            </div>
-                          )}
-                        </div>
-                      )}
+        <AnimatePresence mode="popLayout">
+          {filteredTodos.length === 0 ? (
+            <EmptyState filter={filter} />
+          ) : (
+            <motion.ul className="space-y-3">
+              {filteredTodos.map((todo, index) => (
+                <motion.li
+                  key={todo.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`group flex flex-col rounded-xl task-card overflow-hidden relative ${
+                    focusModeActive &&
+                    (todo.priority === "high" ||
+                      isDueSoon(todo.dueDate, todo.dueTime))
+                      ? "ring-2 ring-red-500 dark:ring-red-600 shadow-lg"
+                      : ""
+                  }`}
+                >
+                  {/* Focus mode indicator badge */}
+                  {focusModeActive && (
+                    <div className="absolute top-2 right-2 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                      {todo.priority === "high" ? "High Priority" : "Due Soon"}
                     </div>
                   )}
 
-                  <div className="flex gap-1.5 sm:gap-2 transition-opacity">
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
                     <motion.button
-                      whileHover={{
-                        scale: 1.1,
-                        backgroundColor: "rgba(var(--primary-rgb), 0.2)",
-                      }}
+                      whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={() => startEdit(todo)}
-                      disabled={todo.completed}
-                      className={`p-1.5 sm:p-2 group relative rounded-lg transition-colors ${
+                      onClick={() => toggleTodo(todo.id)}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                         todo.completed
-                          ? "text-muted-foreground cursor-not-allowed"
-                          : "text-primary hover:text-primary bg-primary/5"
+                          ? "bg-primary border-primary shadow-sm shadow-primary/20"
+                          : "border-border hover:border-primary"
                       }`}
                     >
-                      <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      {todo.completed && (
+                        <CheckIcon className="w-3 h-3 sm:w-4 sm:h-4 text-primary-foreground" />
+                      )}
                     </motion.button>
 
-                    {/* Time tracking controls */}
-                    {!todo.completed &&
-                      (todo.timeTracking.isRunning ? (
-                        <motion.button
-                          whileHover={{
-                            scale: 1.1,
-                            backgroundColor: "rgba(239, 68, 68, 0.2)",
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => stopTimeTracking(todo.id)}
-                          className="p-1.5 sm:p-2 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4 sm:w-5 sm:h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </motion.button>
-                      ) : (
-                        <motion.button
-                          whileHover={{
-                            scale: 1.1,
-                            backgroundColor: "rgba(16, 185, 129, 0.2)",
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => startTimeTracking(todo.id)}
-                          className="p-1.5 sm:p-2 text-green-500 bg-green-50 dark:bg-green-900/20 rounded-lg transition-colors"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4 sm:w-5 sm:h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </motion.button>
-                      ))}
+                    {editingId === todo.id ? (
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            autoFocus
+                            className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/30 bg-background/80 text-sm"
+                          />
+                          <div className="flex gap-1">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={saveEdit}
+                              className="p-1.5 text-primary hover:text-primary/80 bg-primary/10 rounded-lg"
+                            >
+                              <CheckIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={cancelEdit}
+                              className="p-1.5 text-muted-foreground hover:text-foreground bg-secondary/50 rounded-lg"
+                            >
+                              <XMarkIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </motion.button>
+                          </div>
+                        </div>
 
-                    {/* Reset timer button - only show if there's time tracked */}
-                    {todo.timeTracking.totalSeconds > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 px-1">
+                          {/* Category */}
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">
+                              Category
+                            </label>
+                            <input
+                              type="text"
+                              list="edit-category-options"
+                              value={editCategory}
+                              onChange={(e) => setEditCategory(e.target.value)}
+                              placeholder="Add category"
+                              className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                            />
+                            <datalist id="edit-category-options">
+                              {categories
+                                .filter((c) => c !== "all")
+                                .map((category) => (
+                                  <option key={category} value={category} />
+                                ))}
+                            </datalist>
+                          </div>
+
+                          {/* Priority */}
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">
+                              Priority
+                            </label>
+                            <select
+                              value={editPriority}
+                              onChange={(e) =>
+                                setEditPriority(
+                                  e.target.value as
+                                    | "low"
+                                    | "medium"
+                                    | "high"
+                                    | "none"
+                                )
+                              }
+                              className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                            >
+                              <option value="none">None</option>
+                              <option value="low">Low</option>
+                              <option value="medium">Medium</option>
+                              <option value="high">High</option>
+                            </select>
+                          </div>
+
+                          {/* Due Date */}
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">
+                              Due Date
+                            </label>
+                            <input
+                              type="date"
+                              value={editDueDate}
+                              onChange={(e) => setEditDueDate(e.target.value)}
+                              className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                            />
+                          </div>
+
+                          {/* Due Time */}
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">
+                              Due Time
+                            </label>
+                            <input
+                              type="time"
+                              value={editDueTime}
+                              onChange={(e) => setEditDueTime(e.target.value)}
+                              className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                            />
+                          </div>
+
+                          {/* Reminder */}
+                          <div className="space-y-1 flex items-end">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={editReminder}
+                                onChange={(e) =>
+                                  setEditReminder(e.target.checked)
+                                }
+                                className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                              />
+                              <span className="text-xs text-gray-700 dark:text-gray-300">
+                                Set reminder
+                              </span>
+                            </label>
+                          </div>
+
+                          {/* Tags */}
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">
+                              Tags (comma separated)
+                            </label>
+                            <input
+                              type="text"
+                              value={editTags}
+                              onChange={(e) => setEditTags(e.target.value)}
+                              placeholder="work, personal"
+                              className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col">
+                        <span
+                          className={`text-sm sm:text-base ${
+                            todo.completed
+                              ? "line-through text-muted-foreground"
+                              : ""
+                          }`}
+                        >
+                          {todo.text}
+                        </span>
+
+                        {/* Task metadata row */}
+                        {(todo.category ||
+                          todo.priority !== "none" ||
+                          todo.dueDate ||
+                          todo.dueTime ||
+                          todo.reminder ||
+                          todo.tags?.length > 0 ||
+                          todo.timeTracking.totalSeconds > 0 ||
+                          todo.timeTracking.isRunning) && (
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            {/* Category */}
+                            {todo.category && (
+                              <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary/90">
+                                {todo.category}
+                              </div>
+                            )}
+
+                            {/* Priority */}
+                            {todo.priority !== "none" && (
+                              <div
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${getPriorityColor(
+                                  todo.priority
+                                )}`}
+                              >
+                                <FlagIcon className="w-3 h-3" />
+                                {todo.priority}
+                              </div>
+                            )}
+
+                            {/* Due date */}
+                            {todo.dueDate && (
+                              <div
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                                  getDueStatus(todo.dueDate, todo.dueTime) ===
+                                  "overdue"
+                                    ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+                                    : getDueStatus(
+                                        todo.dueDate,
+                                        todo.dueTime
+                                      ) === "today"
+                                    ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
+                                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                }`}
+                              >
+                                <CalendarIcon className="w-3 h-3" />
+                                {formatDateTime(todo.dueDate, todo.dueTime)}
+                              </div>
+                            )}
+
+                            {/* Reminder indicator */}
+                            {todo.reminder && (
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                                  />
+                                </svg>
+                                <span>Reminder</span>
+                              </div>
+                            )}
+
+                            {/* Tags */}
+                            {todo.tags?.map((tag) => (
+                              <div
+                                key={tag}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                              >
+                                #{tag}
+                              </div>
+                            ))}
+
+                            {/* Time tracking */}
+                            {(todo.timeTracking.totalSeconds > 0 ||
+                              todo.timeTracking.isRunning) && (
+                              <div
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                                  todo.timeTracking.isRunning
+                                    ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-pulse"
+                                    : "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+                                }`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                {formatTime(todo.timeTracking.totalSeconds)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-1.5 sm:gap-2 transition-opacity">
                       <motion.button
                         whileHover={{
                           scale: 1.1,
-                          backgroundColor: "rgba(107, 114, 128, 0.2)",
+                          backgroundColor: "rgba(var(--primary-rgb), 0.2)",
                         }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => resetTimeTracking(todo.id)}
-                        className="p-1.5 sm:p-2 text-gray-500 bg-gray-50 dark:text-gray-400 dark:bg-gray-800/40 rounded-lg transition-colors"
+                        onClick={() => startEdit(todo)}
+                        disabled={todo.completed}
+                        className={`p-1.5 sm:p-2 group relative rounded-lg transition-colors ${
+                          todo.completed
+                            ? "text-muted-foreground cursor-not-allowed"
+                            : "text-primary hover:text-primary bg-primary/5"
+                        }`}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
+                        <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                       </motion.button>
-                    )}
 
-                    <motion.button
-                      whileHover={{
-                        scale: 1.1,
-                        backgroundColor: "rgba(var(--destructive-rgb), 0.2)",
-                      }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => deleteTodo(todo.id)}
-                      className="p-1.5 sm:p-2 text-destructive bg-destructive/5 rounded-lg group relative transition-colors"
-                    >
-                      <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </motion.button>
+                      {/* Time tracking controls */}
+                      {!todo.completed &&
+                        (todo.timeTracking.isRunning ? (
+                          <motion.button
+                            whileHover={{
+                              scale: 1.1,
+                              backgroundColor: "rgba(239, 68, 68, 0.2)",
+                            }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => stopTimeTracking(todo.id)}
+                            className="p-1.5 sm:p-2 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-4 h-4 sm:w-5 sm:h-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            whileHover={{
+                              scale: 1.1,
+                              backgroundColor: "rgba(16, 185, 129, 0.2)",
+                            }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => startTimeTracking(todo.id)}
+                            className="p-1.5 sm:p-2 text-green-500 bg-green-50 dark:bg-green-900/20 rounded-lg transition-colors"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-4 h-4 sm:w-5 sm:h-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </motion.button>
+                        ))}
+
+                      {/* Reset timer button - only show if there's time tracked */}
+                      {todo.timeTracking.totalSeconds > 0 && (
+                        <motion.button
+                          whileHover={{
+                            scale: 1.1,
+                            backgroundColor: "rgba(107, 114, 128, 0.2)",
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => resetTimeTracking(todo.id)}
+                          className="p-1.5 sm:p-2 text-gray-500 bg-gray-50 dark:text-gray-400 dark:bg-gray-800/40 rounded-lg transition-colors"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                        </motion.button>
+                      )}
+
+                      <motion.button
+                        whileHover={{
+                          scale: 1.1,
+                          backgroundColor: "rgba(var(--destructive-rgb), 0.2)",
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => deleteTodo(todo.id)}
+                        className="p-1.5 sm:p-2 text-destructive bg-destructive/5 rounded-lg group relative transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </motion.button>
+                    </div>
                   </div>
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+
+        {todos.length > 0 && (
+          <div className="p-3 sm:p-5 bg-gradient-to-r from-accent/40 via-accent/30 to-accent/40 backdrop-blur-sm flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-sm border-t border-border/30 rounded-xl mt-6 sm:mt-8">
+            <span className="text-gray-600 dark:text-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 bg-background/50 rounded-lg text-xs sm:text-sm shadow-sm font-medium">
+              {activeTodoCount} task{activeTodoCount !== 1 ? "s" : ""} left
+            </span>
+
+            <div className="flex gap-2">
+              {/* Time tracking statistics */}
+              {todos.some(
+                (todo) =>
+                  todo.timeTracking.totalSeconds > 0 ||
+                  todo.timeTracking.isRunning
+              ) && (
+                <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg text-xs sm:text-sm shadow-sm flex items-center gap-1.5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>
+                    Total:{" "}
+                    {formatTime(
+                      todos.reduce(
+                        (acc, todo) => acc + todo.timeTracking.totalSeconds,
+                        0
+                      )
+                    )}
+                  </span>
                 </div>
-              </motion.li>
-            ))}
-          </motion.ul>
-        )}
-      </AnimatePresence>
+              )}
 
-      {todos.length > 0 && (
-        <div className="p-3 sm:p-5 bg-gradient-to-r from-accent/40 via-accent/30 to-accent/40 backdrop-blur-sm flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-sm border-t border-border/30 rounded-xl mt-6 sm:mt-8">
-          <span className="text-gray-600 dark:text-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 bg-background/50 rounded-lg text-xs sm:text-sm shadow-sm font-medium">
-            {activeTodoCount} task{activeTodoCount !== 1 ? "s" : ""} left
-          </span>
-
-          <div className="flex gap-2">
-            {/* Time tracking statistics */}
-            {todos.some(
-              (todo) =>
-                todo.timeTracking.totalSeconds > 0 ||
-                todo.timeTracking.isRunning
-            ) && (
-              <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg text-xs sm:text-sm shadow-sm flex items-center gap-1.5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              {completedTodoCount > 0 && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={clearCompleted}
+                  className="text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white/20 dark:bg-gray-700/30 hover:bg-red-500/10 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 shadow-sm"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span>
-                  Total:{" "}
-                  {formatTime(
-                    todos.reduce(
-                      (acc, todo) => acc + todo.timeTracking.totalSeconds,
-                      0
-                    )
-                  )}
-                </span>
-              </div>
-            )}
-
-            {completedTodoCount > 0 && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={clearCompleted}
-                className="text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white/20 dark:bg-gray-700/30 hover:bg-red-500/10 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 shadow-sm"
-              >
-                Clear completed
-              </motion.button>
-            )}
+                  Clear completed
+                </motion.button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showTimeReport && (
-        <TimeReport todos={todos} onClose={() => setShowTimeReport(false)} />
-      )}
+        {showTimeReport && (
+          <TimeReport todos={todos} onClose={() => setShowTimeReport(false)} />
+        )}
+      </div>
     </div>
   );
 }
