@@ -2,7 +2,7 @@
 
 import { ArrowLeftIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function PomodoroTimer() {
   const [mode, setMode] = useState<"work" | "shortBreak" | "longBreak">("work");
@@ -11,11 +11,14 @@ export default function PomodoroTimer() {
   const [cycles, setCycles] = useState(0);
 
   // Timer durations in seconds
-  const durations = {
-    work: 25 * 60,
-    shortBreak: 5 * 60,
-    longBreak: 15 * 60,
-  };
+  const durations = useMemo(
+    () => ({
+      work: 25 * 60,
+      shortBreak: 5 * 60,
+      longBreak: 15 * 60,
+    }),
+    []
+  );
 
   // Handle mode change
   useEffect(() => {
@@ -28,9 +31,15 @@ export default function PomodoroTimer() {
     try {
       // Define AudioContext type properly to avoid circular reference
       type AudioContextType = typeof window.AudioContext;
+      // Define the WebkitAudioContext type properly
+      interface WindowWithWebkitAudio extends Window {
+        webkitAudioContext?: AudioContextType;
+      }
+
       const AudioCtx: AudioContextType =
         window.AudioContext ||
-        ((window as any).webkitAudioContext as AudioContextType);
+        ((window as WindowWithWebkitAudio)
+          .webkitAudioContext as AudioContextType);
       const audioContext = new AudioCtx();
 
       const oscillator = audioContext.createOscillator();
