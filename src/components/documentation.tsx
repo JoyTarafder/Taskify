@@ -73,6 +73,7 @@ export function Documentation({ isOpen, onClose }: DocumentationProps) {
                         </li>
                         <li>Due Date & Time: Set deadlines</li>
                         <li>Reminder: Get notified about upcoming tasks</li>
+                        <li>Recurring: Set tasks to repeat automatically</li>
                         <li>Tags: Add custom labels for better organization</li>
                       </ul>
                     </li>
@@ -133,6 +134,10 @@ export function Documentation({ isOpen, onClose }: DocumentationProps) {
                     <li>
                       <strong>Priority Filter:</strong> Show tasks by priority
                       level
+                    </li>
+                    <li>
+                      <strong>Recurring Filter:</strong> View all, recurring, or
+                      non-recurring tasks
                     </li>
                     <li>
                       <strong>Sort Options:</strong>
@@ -569,6 +574,69 @@ export function Documentation({ isOpen, onClose }: DocumentationProps) {
                     </li>
                     <li>Clear completed tasks after review</li>
                   </ol>
+                </div>
+              </div>
+
+              <div className="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-primary"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Recurring Tasks
+                </h3>
+                <div className="space-y-3 text-gray-700 dark:text-gray-300">
+                  <p>
+                    Recurring tasks help you manage repeating responsibilities
+                    without having to recreate them manually:
+                  </p>
+                  <h4 className="font-medium text-gray-900 dark:text-white">
+                    How Recurring Tasks Work
+                  </h4>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>
+                      <strong>Set Up:</strong> When creating or editing a task,
+                      check the &quot;Recurring&quot; checkbox and select a
+                      frequency
+                    </li>
+                    <li>
+                      <strong>Frequency Options:</strong>
+                      <ul className="list-disc pl-5 mt-1 space-y-1">
+                        <li>Daily: Task repeats every day</li>
+                        <li>Weekly: Task repeats every 7 days</li>
+                        <li>
+                          Monthly: Task repeats on the same day each month
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <strong>Task Regeneration:</strong> When you complete a
+                      recurring task, a new instance is automatically created
+                      with updated due date
+                    </li>
+                    <li>
+                      <strong>Due Date Required:</strong> Recurring tasks must
+                      have a due date to function properly
+                    </li>
+                    <li>
+                      <strong>Visual Indicator:</strong> Recurring tasks display
+                      a cycle icon with their frequency
+                    </li>
+                  </ul>
+                  <p className="mt-2">
+                    Recurring tasks are perfect for habits, routine
+                    responsibilities, and regular commitments.
+                  </p>
                 </div>
               </div>
               <div className="p-4 border-t flex justify-end">

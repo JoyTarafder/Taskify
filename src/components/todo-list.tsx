@@ -35,6 +35,11 @@ interface Todo {
     isRunning: boolean;
     lastStartTime: number | null;
   };
+  recurring: {
+    isRecurring: boolean;
+    frequency: "daily" | "weekly" | "monthly" | "none";
+    lastCompleted: number | null;
+  };
 }
 
 interface Toast {
@@ -54,6 +59,9 @@ export function TodoList() {
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [recurringFilter, setRecurringFilter] = useState<
+    "all" | "recurring" | "non-recurring"
+  >("all");
   const [sortBy, setSortBy] = useState<"default" | "dueDate" | "priority">(
     "default"
   );
@@ -67,6 +75,10 @@ export function TodoList() {
   const [editDueTime, setEditDueTime] = useState<string>("");
   const [editTags, setEditTags] = useState<string>("");
   const [editReminder, setEditReminder] = useState(false);
+  const [editRecurring, setEditRecurring] = useState(false);
+  const [editRecurringFrequency, setEditRecurringFrequency] = useState<
+    "daily" | "weekly" | "monthly" | "none"
+  >("none");
   const [showAdvancedAdd, setShowAdvancedAdd] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [newPriority, setNewPriority] = useState<
@@ -76,6 +88,10 @@ export function TodoList() {
   const [newDueTime, setNewDueTime] = useState("");
   const [newTags, setNewTags] = useState("");
   const [newReminder, setNewReminder] = useState(false);
+  const [newRecurring, setNewRecurring] = useState(false);
+  const [newRecurringFrequency, setNewRecurringFrequency] = useState<
+    "daily" | "weekly" | "monthly" | "none"
+  >("none");
   const [showTimeReport, setShowTimeReport] = useState(false);
   const [focusModeActive, setFocusModeActive] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
@@ -124,6 +140,12 @@ export function TodoList() {
     e.preventDefault();
     if (!newTodo.trim()) return;
 
+    // Validate that recurring tasks have a due date
+    if (newRecurring && !newDueDate) {
+      showToast("Recurring tasks must have a due date", "error");
+      return;
+    }
+
     const todo: Todo = {
       id: Date.now().toString(),
       text: newTodo.trim(),
@@ -144,26 +166,120 @@ export function TodoList() {
         isRunning: false,
         lastStartTime: null,
       },
+      recurring: {
+        isRecurring: newRecurring,
+        frequency: newRecurringFrequency,
+        lastCompleted: null,
+      },
     };
 
     setTodos((prev) => [...prev, todo]);
     setNewTodo("");
+    // Reset the recurring task fields
+    setNewRecurring(false);
+    setNewRecurringFrequency("none");
     // Don't reset advanced fields if the user wants to add multiple tasks with similar properties
     showToast("Added successfully", "success");
   };
 
   const toggleTodo = (id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id
-          ? {
-              ...todo,
-              completed: !todo.completed,
-              status: !todo.completed ? "done" : "todo",
-            }
-          : todo
-      )
-    );
+    const todo = todos.find((todo) => todo.id === id);
+
+    if (todo?.recurring.isRecurring) {
+      // For recurring tasks, we'll mark this instance as complete
+      // and create a new instance with a future due date
+      setTodos((prev) => {
+        // First, mark the current task as completed
+        const updatedTodos = prev.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                completed: !t.completed,
+                status: !t.completed ? "done" : "todo",
+                recurring: {
+                  ...t.recurring,
+                  lastCompleted: !t.completed
+                    ? Date.now()
+                    : t.recurring.lastCompleted,
+                },
+              }
+            : t
+        );
+
+        // If the task is being marked as complete and it's recurring,
+        // create a new instance with updated due date
+        if (todo && !todo.completed) {
+          const newDueDate = calculateNextDueDate(
+            todo.dueDate,
+            todo.recurring.frequency
+          );
+
+          // Create new task with same details but future due date
+          const newTask: Todo = {
+            ...todo,
+            id: Date.now().toString(), // New ID
+            completed: false,
+            status: "todo",
+            createdAt: Date.now(),
+            dueDate: newDueDate,
+            recurring: {
+              ...todo.recurring,
+              lastCompleted: null,
+            },
+          };
+
+          return [...updatedTodos, newTask];
+        }
+
+        return updatedTodos;
+      });
+    } else {
+      // For regular tasks, just toggle the completed status
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === id
+            ? {
+                ...todo,
+                completed: !todo.completed,
+                status: !todo.completed ? "done" : "todo",
+              }
+            : todo
+        )
+      );
+    }
+  };
+
+  // Helper to calculate the next due date based on frequency
+  const calculateNextDueDate = (
+    currentDueDate: string | null,
+    frequency: string
+  ): string => {
+    if (!currentDueDate) {
+      // If no current due date, use tomorrow's date
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split("T")[0];
+    }
+
+    const dueDate = new Date(currentDueDate);
+
+    switch (frequency) {
+      case "daily":
+        dueDate.setDate(dueDate.getDate() + 1);
+        break;
+      case "weekly":
+        dueDate.setDate(dueDate.getDate() + 7);
+        break;
+      case "monthly":
+        dueDate.setMonth(dueDate.getMonth() + 1);
+        break;
+      default:
+        // For any other value, add a day
+        dueDate.setDate(dueDate.getDate() + 1);
+    }
+
+    // Format as YYYY-MM-DD
+    return dueDate.toISOString().split("T")[0];
   };
 
   const deleteTodo = (id: string) => {
@@ -180,6 +296,8 @@ export function TodoList() {
     setEditDueTime(todo.dueTime || "");
     setEditTags(todo.tags?.join(", ") || "");
     setEditReminder(todo.reminder || false);
+    setEditRecurring(todo.recurring.isRecurring || false);
+    setEditRecurringFrequency(todo.recurring.frequency || "none");
   };
 
   const cancelEdit = () => {
@@ -191,10 +309,18 @@ export function TodoList() {
     setEditDueTime("");
     setEditTags("");
     setEditReminder(false);
+    setEditRecurring(false);
+    setEditRecurringFrequency("none");
   };
 
   const saveEdit = () => {
     if (!editText.trim() || !editingId) return;
+
+    // Validate that recurring tasks have a due date
+    if (editRecurring && !editDueDate) {
+      showToast("Recurring tasks must have a due date", "error");
+      return;
+    }
 
     setTodos((prev) =>
       prev.map((todo) =>
@@ -211,6 +337,11 @@ export function TodoList() {
                 .map((tag) => tag.trim())
                 .filter((tag) => tag !== ""),
               reminder: editReminder,
+              recurring: {
+                isRecurring: editRecurring,
+                frequency: editRecurringFrequency,
+                lastCompleted: null,
+              },
               status: todo.completed ? "done" : "todo",
             }
           : todo
@@ -225,6 +356,8 @@ export function TodoList() {
     setEditDueTime("");
     setEditTags("");
     setEditReminder(false);
+    setEditRecurring(false);
+    setEditRecurringFrequency("none");
     showToast("Edited successfully", "info");
   };
 
@@ -298,12 +431,26 @@ export function TodoList() {
       const priorityMatch =
         priorityFilter === "all" ? true : todo.priority === priorityFilter;
 
+      // Recurring filter
+      const recurringMatch =
+        recurringFilter === "all"
+          ? true
+          : recurringFilter === "recurring"
+          ? todo.recurring.isRecurring
+          : !todo.recurring.isRecurring;
+
       // Focus mode filter (if active, only show high priority tasks and tasks due soon)
       const focusModeMatch = focusModeActive
         ? todo.priority === "high" || isDueSoon(todo.dueDate, todo.dueTime)
         : true;
 
-      return statusMatch && categoryMatch && priorityMatch && focusModeMatch;
+      return (
+        statusMatch &&
+        categoryMatch &&
+        priorityMatch &&
+        recurringMatch &&
+        focusModeMatch
+      );
     });
 
     // Then sort the filtered results
@@ -702,6 +849,50 @@ export function TodoList() {
                   </label>
                 </div>
 
+                {/* Recurring */}
+                <div className="space-y-1 flex items-end">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newRecurring}
+                      onChange={(e) => setNewRecurring(e.target.checked)}
+                      className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Recurring
+                    </span>
+                  </label>
+                </div>
+
+                {/* Recurring Frequency */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="recurringFrequency"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    Recurring Frequency
+                  </label>
+                  <select
+                    id="recurringFrequency"
+                    value={newRecurringFrequency}
+                    onChange={(e) =>
+                      setNewRecurringFrequency(
+                        e.target.value as
+                          | "daily"
+                          | "weekly"
+                          | "monthly"
+                          | "none"
+                      )
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                  >
+                    <option value="none">None</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+
                 {/* Tags */}
                 <div className="space-y-1">
                   <label
@@ -799,6 +990,21 @@ export function TodoList() {
               <option value="medium">Medium Priority</option>
               <option value="low">Low Priority</option>
               <option value="none">No Priority</option>
+            </select>
+
+            {/* Recurring filter */}
+            <select
+              value={recurringFilter}
+              onChange={(e) =>
+                setRecurringFilter(
+                  e.target.value as "all" | "recurring" | "non-recurring"
+                )
+              }
+              className="rounded-lg text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 border-none focus:ring-1 focus:ring-primary/20"
+            >
+              <option value="all">All Recurring</option>
+              <option value="recurring">Recurring</option>
+              <option value="non-recurring">Non-Recurring</option>
             </select>
 
             {/* Sort by selector */}
@@ -981,6 +1187,52 @@ export function TodoList() {
                             </label>
                           </div>
 
+                          {/* Recurring */}
+                          <div className="space-y-1 flex items-end">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={editRecurring}
+                                onChange={(e) =>
+                                  setEditRecurring(e.target.checked)
+                                }
+                                className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                              />
+                              <span className="text-xs text-gray-700 dark:text-gray-300">
+                                Recurring
+                              </span>
+                            </label>
+                          </div>
+
+                          {/* Recurring Frequency */}
+                          <div className="space-y-1">
+                            <label
+                              htmlFor="recurringFrequency"
+                              className="text-xs text-gray-500 dark:text-gray-400"
+                            >
+                              Recurring Frequency
+                            </label>
+                            <select
+                              id="recurringFrequency"
+                              value={editRecurringFrequency}
+                              onChange={(e) =>
+                                setEditRecurringFrequency(
+                                  e.target.value as
+                                    | "daily"
+                                    | "weekly"
+                                    | "monthly"
+                                    | "none"
+                                )
+                              }
+                              className="w-full px-2 py-1 rounded-md border border-border/50 bg-white/50 dark:bg-gray-800/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-xs"
+                            >
+                              <option value="none">None</option>
+                              <option value="daily">Daily</option>
+                              <option value="weekly">Weekly</option>
+                              <option value="monthly">Monthly</option>
+                            </select>
+                          </div>
+
                           {/* Tags */}
                           <div className="space-y-1">
                             <label className="text-xs text-gray-500 dark:text-gray-400">
@@ -1075,6 +1327,27 @@ export function TodoList() {
                                   />
                                 </svg>
                                 <span>Reminder</span>
+                              </div>
+                            )}
+
+                            {/* Recurring indicator */}
+                            {todo.recurring.isRecurring && (
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                <span>{todo.recurring.frequency}</span>
                               </div>
                             )}
 
