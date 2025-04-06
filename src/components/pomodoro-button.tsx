@@ -38,7 +38,7 @@ export function PomodoroButton() {
     });
   };
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     if (!isDragging) {
       router.push("/pomodoro");
     }

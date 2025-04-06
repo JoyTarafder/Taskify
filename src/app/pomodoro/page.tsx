@@ -21,13 +21,15 @@ export default function PomodoroTimer() {
   useEffect(() => {
     setTimeLeft(durations[mode]);
     setIsRunning(false);
-  }, [mode]);
+  }, [mode, durations]);
 
   // Create audio context for notification sound
   const playNotificationSound = () => {
     try {
       const AudioContext =
-        window.AudioContext || (window as any).webkitAudioContext;
+        window.AudioContext ||
+        (window as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
       const audioContext = new AudioContext();
 
       const oscillator = audioContext.createOscillator();

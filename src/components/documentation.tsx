@@ -203,7 +203,7 @@ export function Documentation({ isOpen, onClose }: DocumentationProps) {
                     </li>
                     <li>
                       <strong>Session counter:</strong> Tracks how many work
-                      sessions you've completed
+                      sessions you&apos;ve completed
                     </li>
                     <li>
                       <strong>Notifications:</strong> Audio alerts and vibration
