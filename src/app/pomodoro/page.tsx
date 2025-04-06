@@ -26,11 +26,12 @@ export default function PomodoroTimer() {
   // Create audio context for notification sound
   const playNotificationSound = () => {
     try {
-      const AudioContext =
+      // Define AudioContext type properly to avoid circular reference
+      type AudioContextType = typeof window.AudioContext;
+      const AudioCtx: AudioContextType =
         window.AudioContext ||
-        (window as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
-      const audioContext = new AudioContext();
+        ((window as any).webkitAudioContext as AudioContextType);
+      const audioContext = new AudioCtx();
 
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
