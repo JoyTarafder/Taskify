@@ -1,3 +1,4 @@
+import { PomodoroButtonWrapper } from "@/components/pomodoro-button-wrapper";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
@@ -39,6 +40,7 @@ export default function RootLayout({
           {/* Notifications container that stays fixed */}
           <div id="notifications-container"></div>
           {children}
+          <PomodoroButtonWrapper />
         </ThemeProvider>
       </body>
     </html>

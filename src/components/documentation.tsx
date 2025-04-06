@@ -173,6 +173,48 @@ export function Documentation({ isOpen, onClose }: DocumentationProps) {
 
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Pomodoro Timer
+                </h3>
+                <div className="space-y-2">
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Boost your productivity with our dedicated Pomodoro timer:
+                  </p>
+                  <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                    <li>
+                      <strong>Easy access:</strong> Click the floating orange
+                      clock button to open the timer
+                    </li>
+                    <li>
+                      <strong>Customizable position:</strong> Drag the button
+                      anywhere on your screen
+                    </li>
+                    <li>
+                      <strong>Multiple timer modes:</strong>
+                      <ul className="list-disc pl-5 mt-1 space-y-1">
+                        <li>Work session (25 minutes)</li>
+                        <li>Short break (5 minutes)</li>
+                        <li>Long break (15 minutes)</li>
+                      </ul>
+                    </li>
+                    <li>
+                      <strong>Full automation:</strong> Timer automatically
+                      cycles between work and break periods following the
+                      Pomodoro technique
+                    </li>
+                    <li>
+                      <strong>Session counter:</strong> Tracks how many work
+                      sessions you've completed
+                    </li>
+                    <li>
+                      <strong>Notifications:</strong> Audio alerts and vibration
+                      when timers complete
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Keyboard Shortcuts
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -355,6 +397,61 @@ export function Documentation({ isOpen, onClose }: DocumentationProps) {
                       After 4 pomodoros, take a longer break (15-30 minutes)
                     </li>
                   </ol>
+
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mt-4">
+                    <h5 className="font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Built-in Pomodoro Timer
+                    </h5>
+                    <p className="mt-2">
+                      Taskify includes a dedicated Pomodoro timer feature to
+                      help you implement this technique:
+                    </p>
+                    <ul className="list-disc pl-5 mt-2 space-y-2">
+                      <li>
+                        <strong>Access the timer:</strong> Click the floating
+                        orange button with a clock icon that appears in the
+                        corner of your screen
+                      </li>
+                      <li>
+                        <strong>Draggable button:</strong> You can drag and
+                        position the button anywhere on your screen for
+                        convenience
+                      </li>
+                      <li>
+                        <strong>Timer modes:</strong> Choose between Work (25
+                        min), Short Break (5 min), and Long Break (15 min)
+                      </li>
+                      <li>
+                        <strong>Controls:</strong> Start, pause, and reset the
+                        timer as needed
+                      </li>
+                      <li>
+                        <strong>Notifications:</strong> Receive audio alerts and
+                        device vibration (if supported) when a timer completes
+                      </li>
+                      <li>
+                        <strong>Session tracking:</strong> The timer keeps count
+                        of your completed work sessions
+                      </li>
+                      <li>
+                        <strong>Automatic cycling:</strong> The timer
+                        automatically switches between work and break modes
+                        following the Pomodoro technique
+                      </li>
+                    </ul>
+                  </div>
 
                   <h4 className="font-medium text-gray-900 dark:text-white mt-3">
                     Time Blocking
