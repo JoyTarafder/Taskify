@@ -2,7 +2,8 @@
 
 A beautifully designed task management application built with Next.js, React, TypeScript, Tailwind CSS, and Framer Motion. Taskify provides a modern, responsive interface for organizing your tasks with smooth animations and a beautiful UI.
 
-![Taskify Screenshot](https://github.com/user-attachments/assets/90e6951e-a49f-4da2-bfff-aba9a9341dad)
+![image](https://github.com/user-attachments/assets/a046425e-727e-4ec3-84e5-80b30294e4d8)
+
 
 ## 📋 Features
 
